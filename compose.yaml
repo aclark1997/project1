@@ -1,0 +1,36 @@
+services:
+  server:
+    build:
+      context: .
+      args:
+        - UID=${UID}
+        - GID=${GID}
+    user: "${UID}:${GID}"
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./src:/app
+    depends_on:
+      ui:
+        condition: service_healthy
+    env_file: ".env"
+    entrypoint: bash -c "poetry install --no-root && poetry run uvicorn server:app --host 0.0.0.0 --reload"
+
+  ui:
+    build:
+      context: "src/ui"
+      args:
+        - UID=${UID}
+        - GID=${GID}
+    user: "${UID}:${GID}"
+    ports:
+      - "1234:1234"
+    volumes:
+      - ./src/ui:/app
+    working_dir: /app
+    healthcheck:
+      test: "ls dist"
+      timeout: 30s
+      interval: 10s
+    env_file: ".env"
+    entrypoint: npm run watch

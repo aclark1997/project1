@@ -1,0 +1,17 @@
+{
+  "name": "app",
+  "scripts": {
+    "build": "npm install && parcel build index.html",
+    "watch": "npm install && parcel watch index.html",
+    "format": "prettier -w *.js"
+  },
+  "devDependencies": {
+    "parcel": "^2.10.0",
+    "prettier": "^3.0.3",
+    "process": "^0.11.10"
+  },
+  "dependencies": {
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
+  }
+}
