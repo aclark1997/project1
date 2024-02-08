@@ -4,8 +4,8 @@ WORKDIR /ui
 RUN npm run build
 
 from python:3.11
-ARG GID=1001
-ARG UID=1001
+ARG GID=1000
+ARG UID=1000
 COPY ./src /app
 COPY --from=0 /ui/dist /app/ui/dist
 WORKDIR /app
