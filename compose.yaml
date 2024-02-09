@@ -13,7 +13,6 @@ services:
     depends_on:
       ui:
         condition: service_healthy
-    env_file: ".env"
     entrypoint: bash -c "poetry install --no-root && poetry run uvicorn server:app --host 0.0.0.0 --reload"
 
   ui:
@@ -30,7 +29,6 @@ services:
     working_dir: /app
     healthcheck:
       test: "ls dist"
-      timeout: 30s
+      timeout: 60s
       interval: 10s
-    env_file: ".env"
     entrypoint: npm run watch
