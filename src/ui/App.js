@@ -15,6 +15,8 @@ export default function App({ initialCards }) {
     numberOfUnselectedAces(cards)
   );
 
+  const [newGame, setNewGame] = useState(false);
+
   function numberOfUnselectedAces(cards) {
     return cards.reduce((count, card) => {
       return count + (card.rank === "A" && !card.selected ? 1 : 0);
@@ -22,6 +24,11 @@ export default function App({ initialCards }) {
   }
 
   function toggleSelected(index) {
+    if (newGame) {
+      return;
+    }
+    // setUnselectedAcesCount(numberOfUnselectedAces(cards));
+
     const isAce = cards[index].rank === "A";
     console.log(unselectedAcesCount);
     if (!selected.includes(index)) {
@@ -46,6 +53,11 @@ export default function App({ initialCards }) {
 
   // This function will be called when the Draw button is clicked
   const fetchNewCards = useCallback(async () => {
+    let s = selected.length;
+    if (newGame) {
+      s = 5;
+    }
+
     console.log(`need to fetch ${selected.length} cards`);
 
     // fetch the new cards
@@ -61,7 +73,7 @@ export default function App({ initialCards }) {
          much simpler single API call that specifies the number of
          cards we want dealt.
        **/
-      Array.from(Array(selected.length).keys()).map((arg, index) => {
+      Array.from(Array(s).keys()).map((arg, index) => {
         return Api.deal();
       })
     );
@@ -73,7 +85,7 @@ export default function App({ initialCards }) {
     // selected cards
     let fetchedCardsIndex = 0;
     const newCards = cards.map((card, index) => {
-      if (selected.includes(index)) {
+      if (selected.includes(index) || s === 5) {
         // we map this card to the new card, and increment
         // our fetchedCardsIndex counter
         return fetchedCards[fetchedCardsIndex++];
@@ -85,7 +97,9 @@ export default function App({ initialCards }) {
     // update state, causing a re-render
     setCards(newCards);
     setSelected([]);
-  }, [selected, cards]);
+    setNewGame(!newGame);
+    setUnselectedAcesCount(numberOfUnselectedAces(newCards));
+  }, [selected, cards, newGame]);
 
   return (
     <div>
@@ -94,8 +108,6 @@ export default function App({ initialCards }) {
         selected={selected}
         onSelect={(index) => toggleSelected(index)}
       />
-      <button onClick={async () => fetchNewCards(selected)}>Draw</button>
-
       <DrawButton onClick={fetchNewCards} />
     </div>
   );
