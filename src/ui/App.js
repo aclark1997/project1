@@ -1,7 +1,7 @@
 import Api from "./Api.js";
 import Hand from "./Hand.js";
 import { useState, useCallback } from "react";
-
+import DrawButton from "./DrawButton.js";
 /**
    Note: For each game, we'll only allow the "Draw" to happen once.
    This means we should hide the "Draw" button after it is clicked.
@@ -11,17 +11,53 @@ import { useState, useCallback } from "react";
 export default function App({ initialCards }) {
   const [cards, setCards] = useState(initialCards);
   const [selected, setSelected] = useState([]);
+  const [unselectedAcesCount, setUnselectedAcesCount] = useState(
+    numberOfUnselectedAces(cards)
+  );
+
+  const [newGame, setNewGame] = useState(false);
+
+  function numberOfUnselectedAces(cards) {
+    return cards.reduce((count, card) => {
+      return count + (card.rank === "A" && !card.selected ? 1 : 0);
+    }, 0);
+  }
 
   function toggleSelected(index) {
+    if (newGame) {
+      return;
+    }
+    // setUnselectedAcesCount(numberOfUnselectedAces(cards));
+
+    const isAce = cards[index].rank === "A";
+    console.log(unselectedAcesCount);
     if (!selected.includes(index)) {
-      setSelected(selected.concat([index]));
+      if (
+        selected.length < 3 || // Allow selecting up to 3 cards normally
+        (selected.length === 3 && unselectedAcesCount === 1 && !isAce) ||
+        unselectedAcesCount > 1
+      ) {
+        // Allow selecting the fourth card if the last unselected card is an ace
+        setSelected([...selected, index]);
+        if (isAce) {
+          setUnselectedAcesCount((prevCount) => prevCount - 1);
+        }
+      }
     } else {
-      setSelected(selected.filter((elt) => elt !== index));
+      setSelected(selected.filter((item) => item !== index));
+      if (isAce) {
+        setUnselectedAcesCount((prevCount) => prevCount + 1);
+      }
     }
   }
 
   // This function will be called when the Draw button is clicked
   const fetchNewCards = useCallback(async () => {
+    let s = selected.length;
+    if (newGame) {
+      s = 5;
+    }
+
     console.log(`need to fetch ${selected.length} cards`);
 
     // fetch the new cards
@@ -37,9 +73,9 @@ export default function App({ initialCards }) {
          much simpler single API call that specifies the number of
          cards we want dealt.
        **/
-      Array.from(Array(selected.length).keys()).map((arg, index) => {
+      Array.from(Array(s).keys()).map((arg, index) => {
         return Api.deal();
-      }),
+      })
     );
 
     // let's print out the fetched cards
@@ -49,7 +85,7 @@ export default function App({ initialCards }) {
     // selected cards
     let fetchedCardsIndex = 0;
     const newCards = cards.map((card, index) => {
-      if (selected.includes(index)) {
+      if (selected.includes(index) || s === 5) {
         // we map this card to the new card, and increment
         // our fetchedCardsIndex counter
         return fetchedCards[fetchedCardsIndex++];
@@ -61,7 +97,9 @@ export default function App({ initialCards }) {
     // update state, causing a re-render
     setCards(newCards);
     setSelected([]);
-  }, [selected, cards]);
+    setNewGame(!newGame);
+    setUnselectedAcesCount(numberOfUnselectedAces(newCards));
+  }, [selected, cards, newGame]);
 
   return (
     <div>
@@ -70,7 +108,7 @@ export default function App({ initialCards }) {
         selected={selected}
         onSelect={(index) => toggleSelected(index)}
       />
-      <button onClick={async () => fetchNewCards(selected)}>Draw</button>
+      <DrawButton onClick={fetchNewCards} />
     </div>
   );
 }
