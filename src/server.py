@@ -26,9 +26,9 @@ async def api_v1_deal():
 @app.post("/api/v2/deck/new")
 async def api_v2_deck_new():
     d = Deck()
-    print("deck hash: " + str(hash(d)))
-    decks[str(hash(d))] = d
-    return {"message": "deck created!"}
+    d.id = str(hash(d))
+    decks[d.id] = d
+    return {"message": "deck created!", "id": d.id}
 
 
 @app.get("/api/v2/deck/{deck_id}")
@@ -41,8 +41,9 @@ async def api_v2_deck(deck_id: str):
     raise HTTPException(status_code=404, detail=f"Deck {deck_id} not found")
 
 
-@app.post("/api/v2/deck/{deck_id}/deal")
+@app.get("/api/v2/deck/{deck_id}/deal/{count}")
 async def api_v2_deck(deck_id: str, count: int):
+    return decks[deck_id].deal(count)
     print(f"need to deal {count} cards from {deck_id}")
     raise HTTPException(status_code=404, detail=f"Deck {deck_id} not found")
 

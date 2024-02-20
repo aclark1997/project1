@@ -30,7 +30,7 @@ export default class Api {
         "dealV2 requires a deck id and a number representing how many cards should be dealt",
       );
     }
-    const resp = await fetch(`/api/v2/deck/${id}/deal`, { method: "POST" });
+    const resp = await fetch(`/api/v2/deck/${id}/deal/${count}`);
     const response = await resp.json();
     return response;
   }
